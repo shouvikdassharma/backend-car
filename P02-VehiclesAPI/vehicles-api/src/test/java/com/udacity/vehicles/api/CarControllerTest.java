@@ -4,9 +4,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,6 +19,7 @@ import com.udacity.vehicles.domain.car.Details;
 import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.service.CarService;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
@@ -130,8 +130,35 @@ public class CarControllerTest {
          */
         Car car = getCar();
         mvc.perform(delete("/cars/{id}", car.getId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
+    }
+    @Test
+    public void  updateCar() throws  Exception
+    {
+        Car car = getCar();
+
+        car.setCondition(Condition.USED);
+
+        car.setCreatedAt(LocalDateTime.now());
+
+        car.getDetails().setNumberOfDoors(6);
+
+        car.getDetails().setFuelType("diesel");
+
+        when(carService.save(any(Car.class))).thenReturn(car);
+
+        mvc.perform(
+
+                        put("/cars/1")
+
+                                .content(json.write(car).getJson())
+
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+
+                                .accept(MediaType.APPLICATION_JSON_UTF8))
+
+                .andExpect(status().isOk()).andExpect(jsonPath("$.condition", is(Condition.USED.toString())));
     }
 
     /**
